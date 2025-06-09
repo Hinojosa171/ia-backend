@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Chat = require('../models/Chat');
-const ChatService = require('../services/chatService');
+const { openai } = require('../config/openai');
+const { SYSTEM_PROMPT } = require('../config/chefPrompt');
 
 router.get('/history/:email', async (req, res) => {
     try {

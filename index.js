@@ -50,6 +50,9 @@ app.get('/', (req, res) => {
 // Conexión a MongoDB con mejor manejo de errores
 const connectDB = async () => {
   try {
+    if (!process.env.MONGODB_URI || !process.env.MONGODB_URI.startsWith('mongodb')) {
+      throw new Error('MongoDB URI inválida o no configurada');
+    }
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ MongoDB conectado exitosamente');
   } catch (err) {
