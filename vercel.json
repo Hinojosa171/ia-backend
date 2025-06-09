@@ -15,9 +15,5 @@
       "src": "/(.*)",
       "dest": "index.js"
     }
-  ],
-  "env": {
-    "MONGODB_URI": "${MONGODB_URI}",
-    "OPENAI_API_KEY": "${OPENAI_API_KEY}"
-  }
+  ]
 }
