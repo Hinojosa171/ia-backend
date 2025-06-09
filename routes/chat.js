@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Chat = require('../models/Chat');
-const { openai } = require('../config/openai');
-const { SYSTEM_PROMPT, WELCOME_MESSAGE } = require('../config/chefPrompt');
 const ChatService = require('../services/chatService');
 
 router.get('/history/:email', async (req, res) => {
@@ -33,51 +31,17 @@ router.get('/history/:email', async (req, res) => {
 
 router.post('/message', async (req, res) => {
     try {
-        console.log('Recibiendo mensaje:', req.body); // Debug
-
         const { message, email } = req.body;
         if (!message || !email) {
-            throw new Error('Mensaje y email son requeridos');
+            return res.status(400).json({ error: 'Mensaje y email son requeridos' });
         }
 
         const user = await User.findOne({ email });
         if (!user) {
-            throw new Error('Usuario no encontrado');
+            return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        // Obtener respuesta de OpenAI
-        const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-                { 
-                    role: "system", 
-                    content: SYSTEM_PROMPT 
-                },
-                {
-                    role: "user",
-                    content: message
-                }
-            ],
-            temperature: 0.7,
-            max_tokens: 800
-        });
-
-        console.log('Respuesta de OpenAI:', response.choices[0]); // Debug
-
-        const reply = response.choices[0].message.content;
-
-        // Guardar en el historial
-        let chat = await Chat.findOne({ userId: user._id });
-        if (!chat) {
-            chat = new Chat({ userId: user._id, messages: [] });
-        }
-
-        chat.messages.push(
-            { text: message, sender: 'user', timestamp: new Date() },
-            { text: reply, sender: 'chef', timestamp: new Date() }
-        );
-        await chat.save();
-
+        const reply = await ChatService.processMessage(user._id, message);
         res.json({ reply });
     } catch (error) {
         console.error('Error en chat:', error);
